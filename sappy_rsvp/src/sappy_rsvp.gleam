@@ -1,7 +1,7 @@
-import sappy
 import gleam/result
 import lustre/effect
 import rsvp
+import sappy
 
 pub type Error {
   RsvpError(rsvp.Error)
@@ -15,7 +15,7 @@ pub fn send(
 ) -> effect.Effect(msg) {
   let response = {
     use request <- result.try(
-      echo sappy.client_create_request(endpoint, input, fn(req, _body) { req }),
+      sappy.client_create_request(endpoint, input, fn(req, _body) { req }),
     )
     Ok(rsvp.send(
       request,
