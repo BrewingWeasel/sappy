@@ -6,7 +6,7 @@ import sappy/endpoint
 
 pub type Error {
   RsvpError(rsvp.Error)
-  SappyError(sappy.Error)
+  SappyError(endpoint.Error)
 }
 
 pub fn send(

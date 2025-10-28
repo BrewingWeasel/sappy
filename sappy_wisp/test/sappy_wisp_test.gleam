@@ -1,3 +1,4 @@
+import sappy/endpoint
 import gleam/httpc
 import gleam/string
 import gleeunit
@@ -30,7 +31,7 @@ fn handle_get_person(
   ))
 }
 
-fn send_request(endpoint: sappy.EndPoint(a, b), input: a) -> b {
+fn send_request(endpoint: endpoint.EndPoint(a, b), input: a) -> b {
   let assert Ok(request) =
     sappy.client_create_request(endpoint, input, fn(req, _body) { req })
 
