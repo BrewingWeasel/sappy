@@ -1,9 +1,10 @@
 import sappy
+import sappy/endpoint
 import gleam/option
 import wisp
 
 pub fn handle_request(
-  endpoint,
+  endpoint: endpoint.EndPoint(input, output),
   request: wisp.Request,
   handle: fn(input, fn(output) -> wisp.Response) -> wisp.Response,
   otherwise: fn() -> wisp.Response,

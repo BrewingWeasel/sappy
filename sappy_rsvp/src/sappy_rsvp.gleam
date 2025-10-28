@@ -2,14 +2,15 @@ import gleam/result
 import lustre/effect
 import rsvp
 import sappy
+import sappy/endpoint
 
 pub type Error {
   RsvpError(rsvp.Error)
-  SappyError(sappy.DecodeError)
+  SappyError(sappy.Error)
 }
 
 pub fn send(
-  endpoint: sappy.EndPoint(input, output),
+  endpoint: endpoint.EndPoint(input, output),
   input: input,
   wrap: fn(Result(output, Error)) -> msg,
 ) -> effect.Effect(msg) {

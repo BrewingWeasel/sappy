@@ -4,7 +4,7 @@ import gleam/http
 import gleam/int
 import gleam/json
 import gleam/result
-import sappy
+import sappy/endpoint
 
 pub type Task {
   Task(title: String, description: String, completed: Bool)
@@ -31,13 +31,13 @@ fn task_decoder() -> decode.Decoder(Task) {
 }
 
 pub fn base_endpoint(path) {
-  sappy.new("localhost:8000", path) |> sappy.with_scheme(http.Http)
+  endpoint.new("localhost:8000", path) |> endpoint.with_scheme(http.Http)
 }
 
-pub fn get_all_tasks() -> sappy.EndPoint(Nil, List(#(Int, Task))) {
+pub fn get_all_tasks() -> endpoint.EndPoint(Nil, List(#(Int, Task))) {
   base_endpoint("/api/tasks")
-  |> sappy.with_method(http.Get)
-  |> sappy.returning_json(
+  |> endpoint.with_method(http.Get)
+  |> endpoint.returning_json(
     to_json: json.array(_, fn(pair) {
       let #(id, task) = pair
       json.preprocessed_array([json.int(id), task_to_json(task)])
@@ -51,17 +51,17 @@ pub fn get_all_tasks() -> sappy.EndPoint(Nil, List(#(Int, Task))) {
   )
 }
 
-pub fn create_task() -> sappy.EndPoint(Task, Int) {
+pub fn create_task() -> endpoint.EndPoint(Task, Int) {
   base_endpoint("/api/tasks/new")
-  |> sappy.with_method(http.Post)
-  |> sappy.with_json_body(task_to_json, task_decoder())
-  |> sappy.returning_json(json.int, decode.int)
+  |> endpoint.with_method(http.Post)
+  |> endpoint.with_json_body(task_to_json, task_decoder())
+  |> endpoint.returning_json(json.int, decode.int)
 }
 
-pub fn complete_task() -> sappy.EndPoint(Int, Nil) {
+pub fn complete_task() -> endpoint.EndPoint(Int, Nil) {
   base_endpoint("/api/tasks/id/$id/complete")
-  |> sappy.with_method(http.Post)
-  |> sappy.with_parameters_as_input(
+  |> endpoint.with_method(http.Post)
+  |> endpoint.with_parameters_as_input(
     fn(title) { dict.from_list([#("id", int.to_string(title))]) },
     fn(parameters) { dict.get(parameters, "id") |> result.try(int.parse) },
   )

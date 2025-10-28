@@ -1,11 +1,9 @@
 import gleam/dict
-import gleam/dynamic/decode
 import gleam/http
 import gleam/http/request
 import gleam/http/response
-import gleam/json
 import gleam/list
-import gleam/option.{type Option, Some}
+import gleam/option.{type Option}
 import gleam/result
 import gleam/string
 import gleam/uri
@@ -13,141 +11,20 @@ import gleam/uri
 pub type Parameters =
   dict.Dict(String, String)
 
-pub type DecodeError =
+pub type Error =
   Nil
 
-pub opaque type EndPoint(input, output) {
+@internal
+pub type EndPoint(input, output) {
   EndPoint(
     scheme: http.Scheme,
     method: http.Method,
     endpoint: String,
     host: String,
     encode_input: fn(input) -> #(Parameters, String),
-    decode_input: fn(#(Parameters, String)) -> Result(input, DecodeError),
+    decode_input: fn(#(Parameters, String)) -> Result(input, Error),
     encode_output: Option(fn(output) -> String),
-    decode_output: fn(String) -> Result(output, DecodeError),
-  )
-}
-
-pub fn new(host host, path endpoint) -> EndPoint(Nil, Nil) {
-  EndPoint(
-    scheme: http.Https,
-    method: http.Get,
-    host:,
-    endpoint:,
-    encode_input: fn(_) { #(dict.new(), "") },
-    decode_input: fn(_) { Ok(Nil) },
-    encode_output: Some(fn(_) { "" }),
-    decode_output: fn(_) { Ok(Nil) },
-  )
-}
-
-pub fn with_scheme(
-  endpoint: EndPoint(input, output),
-  scheme: http.Scheme,
-) -> EndPoint(input, output) {
-  EndPoint(..endpoint, scheme:)
-}
-
-pub fn with_method(
-  endpoint: EndPoint(input, output),
-  method: http.Method,
-) -> EndPoint(input, output) {
-  EndPoint(..endpoint, method:)
-}
-
-pub fn with_parameters(
-  current: EndPoint(Nil, output),
-) -> EndPoint(Parameters, output) {
-  EndPoint(
-    ..current,
-    encode_input: fn(params) { #(params, "") },
-    decode_input: fn(input) {
-      let #(params, _body) = input
-      Ok(params)
-    },
-  )
-}
-
-pub fn with_parameters_as_input(
-  current: EndPoint(Nil, output),
-  encode_parameters: fn(input) -> Parameters,
-  decode_parameters: fn(Parameters) -> Result(input, Nil),
-) -> EndPoint(input, output) {
-  EndPoint(
-    ..current,
-    encode_input: fn(input) { #(encode_parameters(input), "") },
-    decode_input: fn(input) {
-      let #(params, _body) = input
-      decode_parameters(params)
-    },
-  )
-}
-
-pub fn with_json_body(
-  current: EndPoint(Nil, output),
-  to_json encode_json: fn(input) -> json.Json,
-  decoder decoder: decode.Decoder(input),
-) -> EndPoint(input, output) {
-  EndPoint(
-    ..current,
-    encode_input: fn(input) {
-      #(dict.new(), input |> encode_json() |> json.to_string())
-    },
-    decode_input: fn(input) {
-      let #(_params, body) = input
-      json.parse(body, decoder) |> result.replace_error(Nil)
-    },
-  )
-}
-
-pub fn with_body(
-  current: EndPoint(Nil, output),
-  encode_body: fn(input) -> String,
-  decode_body: fn(String) -> Result(input, Nil),
-) -> EndPoint(input, output) {
-  EndPoint(
-    ..current,
-    encode_input: fn(input) { #(dict.new(), encode_body(input)) },
-    decode_input: fn(input) {
-      let #(_params, body) = input
-      decode_body(body)
-    },
-  )
-}
-
-pub fn with_body_and_parameters(
-  current: EndPoint(Nil, output),
-  encode_input: fn(input) -> #(Parameters, String),
-  decode_input: fn(Parameters, String) -> Result(input, Nil),
-) -> EndPoint(input, output) {
-  EndPoint(..current, encode_input:, decode_input: fn(params) {
-    let #(params, body) = params
-    decode_input(params, body)
-  })
-}
-
-pub fn returning(
-  current: EndPoint(input, Nil),
-  encode_output: fn(output) -> String,
-  decode_output: fn(String) -> Result(output, Nil),
-) -> EndPoint(input, output) {
-  EndPoint(..current, encode_output: Some(encode_output), decode_output:)
-}
-
-pub fn returning_json(
-  current: EndPoint(input, Nil),
-  to_json encode_json: fn(output) -> json.Json,
-  decoder decoder: decode.Decoder(output),
-) -> EndPoint(input, output) {
-  EndPoint(
-    ..current,
-    encode_output: Some(fn(output) {
-      output |> encode_json() |> json.to_string()
-    }),
-    decode_output: fn(encoded_output) {
-      json.parse(encoded_output, decoder) |> result.replace_error(Nil)
-    },
+    decode_output: fn(String) -> Result(output, Error),
   )
 }
 
@@ -155,8 +32,8 @@ pub fn server_handle_request(
   endpoint: EndPoint(input, output),
   request: request.Request(body),
 ) -> Result(
-  #(fn(String) -> Result(input, DecodeError), Option(fn(output) -> String)),
-  DecodeError,
+  #(fn(String) -> Result(input, Error), Option(fn(output) -> String)),
+  Error,
 ) {
   let parsed_attributes =
     endpoint.endpoint
@@ -193,7 +70,7 @@ pub fn client_create_request(
   endpoint: EndPoint(input, output),
   input: input,
   request_mapper: fn(request.Request(String), String) -> request.Request(body),
-) -> Result(request.Request(body), DecodeError) {
+) -> Result(request.Request(body), Error) {
   let #(params, body) = endpoint.encode_input(input)
 
   use #(leftover_params, segments) <- result.try(
@@ -230,6 +107,6 @@ pub fn client_create_request(
 pub fn client_handle_response(
   endpoint: EndPoint(input, output),
   response: response.Response(String),
-) -> Result(output, DecodeError) {
+) -> Result(output, Error) {
   endpoint.decode_output(response.body)
 }

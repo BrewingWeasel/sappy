@@ -2,10 +2,10 @@ import gleam/dict
 import gleam/dynamic/decode
 import gleam/http
 import gleam/json
-import sappy
+import sappy/endpoint
 
 fn base_endpoint(path: String) {
-  sappy.new("localhost:8000", path) |> sappy.with_scheme(http.Http)
+  endpoint.new("localhost:8000", path) |> endpoint.with_scheme(http.Http)
 }
 
 pub type Person {
@@ -28,12 +28,12 @@ fn person_decoder() -> decode.Decoder(Person) {
   decode.success(Person(name:, age:, is_student:))
 }
 
-pub fn get_person() -> sappy.EndPoint(String, Person) {
+pub fn get_person() -> endpoint.EndPoint(String, Person) {
   base_endpoint("/api/get/$name")
-  |> sappy.with_method(http.Get)
-  |> sappy.with_parameters_as_input(
+  |> endpoint.with_method(http.Get)
+  |> endpoint.with_parameters_as_input(
     fn(name: String) { dict.from_list([#("name", name)]) },
     dict.get(_, "name"),
   )
-  |> sappy.returning_json(person_to_json, person_decoder())
+  |> endpoint.returning_json(person_to_json, person_decoder())
 }
