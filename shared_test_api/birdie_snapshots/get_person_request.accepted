@@ -1,0 +1,7 @@
+---
+version: 1.4.1
+title: get_person request
+file: ./test/shared_test_api_test.gleam
+test_name: get_person_test
+---
+Ok(Request(Get, [], "", Http, "localhost:8000", None, "api/get/Alice", Some("")))
