@@ -5,10 +5,11 @@ import gleam/http/request
 import gleam/http/response
 import gleam/json
 import gleam/list
-import gleam/option.{type Option, Some}
+import gleam/option.{type Option, None, Some}
 import gleam/result
 import gleam/string
 import gleam/uri
+import sappy/endpoint/parameter
 
 pub type Parameters =
   dict.Dict(String, String)
@@ -56,30 +57,249 @@ pub fn with_method(
   EndPoint(..endpoint, method:)
 }
 
-pub fn with_parameters(
+pub fn with_parameter(
   current: EndPoint(Nil, output),
-) -> EndPoint(Parameters, output) {
+  parameter: parameter.Parameter(a),
+) -> EndPoint(a, output) {
   EndPoint(
     ..current,
-    encode_input: fn(params) { #(params, "") },
+    encode_input: fn(param) {
+      let params = case parameter.encode(param) {
+        Some(value) -> dict.insert(dict.new(), parameter.name, value)
+        None -> dict.new()
+      }
+      #(params, "")
+    },
     decode_input: fn(input) {
       let #(params, _body) = input
-      Ok(params)
+      let param = dict.get(params, parameter.name)
+      use param <- result.try(parameter.decode(option.from_result(param)))
+      Ok(param)
     },
   )
 }
 
-pub fn with_parameters_as_input(
+pub fn with_parameters2(
   current: EndPoint(Nil, output),
-  encode_parameters: fn(input) -> Parameters,
-  decode_parameters: fn(Parameters) -> Result(input, Nil),
-) -> EndPoint(input, output) {
+  parameter1: parameter.Parameter(a),
+  parameter2: parameter.Parameter(b),
+) -> EndPoint(#(a, b), output) {
   EndPoint(
     ..current,
-    encode_input: fn(input) { #(encode_parameters(input), "") },
+    encode_input: fn(param) {
+      let #(param1, param2) = param
+      let params =
+        [
+          #(parameter1.encode(param1), parameter1.name),
+          #(parameter2.encode(param2), parameter2.name),
+        ]
+        |> list.fold(dict.new(), fn(acc, item) {
+          case item {
+            #(Some(value), name) -> dict.insert(acc, name, value)
+            #(None, _name) -> acc
+          }
+        })
+      #(params, "")
+    },
     decode_input: fn(input) {
       let #(params, _body) = input
-      decode_parameters(params)
+      let param1 = dict.get(params, parameter1.name)
+      use param1 <- result.try(parameter1.decode(option.from_result(param1)))
+
+      let param2 = dict.get(params, parameter2.name)
+      use param2 <- result.try(parameter2.decode(option.from_result(param2)))
+
+      Ok(#(param1, param2))
+    },
+  )
+}
+
+pub fn with_parameters3(
+  current: EndPoint(Nil, output),
+  parameter1: parameter.Parameter(a),
+  parameter2: parameter.Parameter(b),
+  parameter3: parameter.Parameter(c),
+) -> EndPoint(#(a, b, c), output) {
+  EndPoint(
+    ..current,
+    encode_input: fn(param) {
+      let #(param1, param2, param3) = param
+      let params =
+        [
+          #(parameter1.encode(param1), parameter1.name),
+          #(parameter2.encode(param2), parameter2.name),
+          #(parameter3.encode(param3), parameter3.name),
+        ]
+        |> list.fold(dict.new(), fn(acc, item) {
+          case item {
+            #(Some(value), name) -> dict.insert(acc, name, value)
+            #(None, _name) -> acc
+          }
+        })
+      #(params, "")
+    },
+    decode_input: fn(input) {
+      let #(params, _body) = input
+      let param1 = dict.get(params, parameter1.name)
+      use param1 <- result.try(parameter1.decode(option.from_result(param1)))
+
+      let param2 = dict.get(params, parameter2.name)
+      use param2 <- result.try(parameter2.decode(option.from_result(param2)))
+
+      let param3 = dict.get(params, parameter3.name)
+      use param3 <- result.try(parameter3.decode(option.from_result(param3)))
+
+      Ok(#(param1, param2, param3))
+    },
+  )
+}
+
+pub fn with_parameters4(
+  current: EndPoint(Nil, output),
+  parameter1: parameter.Parameter(a),
+  parameter2: parameter.Parameter(b),
+  parameter3: parameter.Parameter(c),
+  parameter4: parameter.Parameter(d),
+) -> EndPoint(#(a, b, c, d), output) {
+  EndPoint(
+    ..current,
+    encode_input: fn(param) {
+      let #(param1, param2, param3, param4) = param
+      let params =
+        [
+          #(parameter1.encode(param1), parameter1.name),
+          #(parameter2.encode(param2), parameter2.name),
+          #(parameter3.encode(param3), parameter3.name),
+          #(parameter4.encode(param4), parameter4.name),
+        ]
+        |> list.fold(dict.new(), fn(acc, item) {
+          case item {
+            #(Some(value), name) -> dict.insert(acc, name, value)
+            #(None, _name) -> acc
+          }
+        })
+      #(params, "")
+    },
+    decode_input: fn(input) {
+      let #(params, _body) = input
+      let param1 = dict.get(params, parameter1.name)
+      use param1 <- result.try(parameter1.decode(option.from_result(param1)))
+
+      let param2 = dict.get(params, parameter2.name)
+      use param2 <- result.try(parameter2.decode(option.from_result(param2)))
+
+      let param3 = dict.get(params, parameter3.name)
+      use param3 <- result.try(parameter3.decode(option.from_result(param3)))
+
+      let param4 = dict.get(params, parameter4.name)
+      use param4 <- result.try(parameter4.decode(option.from_result(param4)))
+
+      Ok(#(param1, param2, param3, param4))
+    },
+  )
+}
+
+pub fn with_parameters5(
+  current: EndPoint(Nil, output),
+  parameter1: parameter.Parameter(a),
+  parameter2: parameter.Parameter(b),
+  parameter3: parameter.Parameter(c),
+  parameter4: parameter.Parameter(d),
+  parameter5: parameter.Parameter(e),
+) -> EndPoint(#(a, b, c, d, e), output) {
+  EndPoint(
+    ..current,
+    encode_input: fn(param) {
+      let #(param1, param2, param3, param4, param5) = param
+      let params =
+        [
+          #(parameter1.encode(param1), parameter1.name),
+          #(parameter2.encode(param2), parameter2.name),
+          #(parameter3.encode(param3), parameter3.name),
+          #(parameter4.encode(param4), parameter4.name),
+          #(parameter5.encode(param5), parameter5.name),
+        ]
+        |> list.fold(dict.new(), fn(acc, item) {
+          case item {
+            #(Some(value), name) -> dict.insert(acc, name, value)
+            #(None, _name) -> acc
+          }
+        })
+      #(params, "")
+    },
+    decode_input: fn(input) {
+      let #(params, _body) = input
+      let param1 = dict.get(params, parameter1.name)
+      use param1 <- result.try(parameter1.decode(option.from_result(param1)))
+
+      let param2 = dict.get(params, parameter2.name)
+      use param2 <- result.try(parameter2.decode(option.from_result(param2)))
+
+      let param3 = dict.get(params, parameter3.name)
+      use param3 <- result.try(parameter3.decode(option.from_result(param3)))
+
+      let param4 = dict.get(params, parameter4.name)
+      use param4 <- result.try(parameter4.decode(option.from_result(param4)))
+
+      let param5 = dict.get(params, parameter5.name)
+      use param5 <- result.try(parameter5.decode(option.from_result(param5)))
+
+      Ok(#(param1, param2, param3, param4, param5))
+    },
+  )
+}
+
+pub fn with_parameters6(
+  current: EndPoint(Nil, output),
+  parameter1: parameter.Parameter(a),
+  parameter2: parameter.Parameter(b),
+  parameter3: parameter.Parameter(c),
+  parameter4: parameter.Parameter(d),
+  parameter5: parameter.Parameter(e),
+  parameter6: parameter.Parameter(f),
+) -> EndPoint(#(a, b, c, d, e, f), output) {
+  EndPoint(
+    ..current,
+    encode_input: fn(param) {
+      let #(param1, param2, param3, param4, param5, param6) = param
+      let params =
+        [
+          #(parameter1.encode(param1), parameter1.name),
+          #(parameter2.encode(param2), parameter2.name),
+          #(parameter3.encode(param3), parameter3.name),
+          #(parameter4.encode(param4), parameter4.name),
+          #(parameter5.encode(param5), parameter5.name),
+          #(parameter6.encode(param6), parameter6.name),
+        ]
+        |> list.fold(dict.new(), fn(acc, item) {
+          case item {
+            #(Some(value), name) -> dict.insert(acc, name, value)
+            #(None, _name) -> acc
+          }
+        })
+      #(params, "")
+    },
+    decode_input: fn(input) {
+      let #(params, _body) = input
+      let param1 = dict.get(params, parameter1.name)
+      use param1 <- result.try(parameter1.decode(option.from_result(param1)))
+
+      let param2 = dict.get(params, parameter2.name)
+      use param2 <- result.try(parameter2.decode(option.from_result(param2)))
+
+      let param3 = dict.get(params, parameter3.name)
+      use param3 <- result.try(parameter3.decode(option.from_result(param3)))
+
+      let param4 = dict.get(params, parameter4.name)
+      use param4 <- result.try(parameter4.decode(option.from_result(param4)))
+
+      let param5 = dict.get(params, parameter5.name)
+      use param5 <- result.try(parameter5.decode(option.from_result(param5)))
+
+      let param6 = dict.get(params, parameter6.name)
+      use param6 <- result.try(parameter6.decode(option.from_result(param6)))
+
+      Ok(#(param1, param2, param3, param4, param5, param6))
     },
   )
 }
@@ -116,15 +336,52 @@ pub fn with_body(
   )
 }
 
-pub fn with_body_and_parameters(
-  current: EndPoint(Nil, output),
-  encode_input: fn(input) -> #(Parameters, String),
-  decode_input: fn(Parameters, String) -> Result(input, Nil),
-) -> EndPoint(input, output) {
-  EndPoint(..current, encode_input:, decode_input: fn(params) {
-    let #(params, body) = params
-    decode_input(params, body)
-  })
+pub fn and_with_json_body(
+  current: EndPoint(original_input, output),
+  to_json encode_json: fn(input) -> json.Json,
+  decoder decoder: decode.Decoder(input),
+) -> EndPoint(#(original_input, input), output) {
+  EndPoint(
+    ..current,
+    encode_input: fn(input) {
+      let #(original_input, new_input) = input
+      let #(params, _original_body) = current.encode_input(original_input)
+      #(params, new_input |> encode_json() |> json.to_string())
+    },
+    decode_input: fn(input) {
+      use decoded_original <- result.try(current.decode_input(input))
+      let #(_params, body) = input
+
+      use decoded_new <- result.try(
+        json.parse(body, decoder) |> result.replace_error(Nil),
+      )
+
+      Ok(#(decoded_original, decoded_new))
+    },
+  )
+}
+
+pub fn and_with_body(
+  current: EndPoint(original_input, output),
+  encode_body: fn(input) -> String,
+  decode_body: fn(String) -> Result(input, Nil),
+) -> EndPoint(#(original_input, input), output) {
+  EndPoint(
+    ..current,
+    encode_input: fn(input) {
+      let #(original_input, new_input) = input
+      let #(params, _original_body) = current.encode_input(original_input)
+      #(params, encode_body(new_input))
+    },
+    decode_input: fn(input) {
+      use decoded_original <- result.try(current.decode_input(input))
+      let #(_params, body) = input
+
+      use decoded_new <- result.try(decode_body(body))
+
+      Ok(#(decoded_original, decoded_new))
+    },
+  )
 }
 
 pub fn returning(

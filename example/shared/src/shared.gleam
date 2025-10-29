@@ -5,6 +5,7 @@ import gleam/int
 import gleam/json
 import gleam/result
 import sappy/endpoint
+import sappy/endpoint/parameter
 
 pub type Task {
   Task(title: String, description: String, completed: Bool)
@@ -61,8 +62,7 @@ pub fn create_task() -> endpoint.EndPoint(Task, Int) {
 pub fn complete_task() -> endpoint.EndPoint(Int, Nil) {
   base_endpoint("/api/tasks/id/$id/complete")
   |> endpoint.with_method(http.Post)
-  |> endpoint.with_parameters_as_input(
-    fn(title) { dict.from_list([#("id", int.to_string(title))]) },
-    fn(parameters) { dict.get(parameters, "id") |> result.try(int.parse) },
+  |> endpoint.with_parameter(
+    parameter.required("id") |> parameter.map(int.to_string, int.parse),
   )
 }

@@ -1,4 +1,4 @@
-import gleam/dict
+import sappy/endpoint/parameter
 import gleam/dynamic/decode
 import gleam/http
 import gleam/json
@@ -31,9 +31,6 @@ fn person_decoder() -> decode.Decoder(Person) {
 pub fn get_person() -> endpoint.EndPoint(String, Person) {
   base_endpoint("/api/get/$name")
   |> endpoint.with_method(http.Get)
-  |> endpoint.with_parameters_as_input(
-    fn(name: String) { dict.from_list([#("name", name)]) },
-    dict.get(_, "name"),
-  )
+  |> endpoint.with_parameter(parameter.required("name"))
   |> endpoint.returning_json(person_to_json, person_decoder())
 }
