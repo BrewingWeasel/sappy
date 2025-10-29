@@ -1,0 +1,7 @@
+---
+version: 1.4.1
+title: get_person response
+file: ./test/shared_test_api_test.gleam
+test_name: get_person_test
+---
+"{\"name\":\"ALICE\",\"age\":30,\"is_student\":false}"
