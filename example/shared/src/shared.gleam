@@ -1,9 +1,7 @@
-import gleam/dict
 import gleam/dynamic/decode
 import gleam/http
 import gleam/int
 import gleam/json
-import gleam/result
 import sappy/endpoint
 import sappy/endpoint/parameter
 

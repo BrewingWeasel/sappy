@@ -1,3 +1,4 @@
+import gleam/bool
 import gleam/dict
 import gleam/dynamic/decode
 import gleam/http
@@ -14,8 +15,25 @@ import sappy/endpoint/parameter
 pub type Parameters =
   dict.Dict(String, String)
 
-pub type Error =
-  Nil
+pub type Error {
+  MissingParameter(String)
+  JsonDecodeError(json.DecodeError)
+  Custom(String)
+  IncorrectMethod(got: http.Method, expected: http.Method)
+}
+
+pub fn error_to_string(error: Error) -> String {
+  case error {
+    MissingParameter(name) -> "Missing parameter: " <> name
+    JsonDecodeError(_decode_error) -> "JSON decode error"
+    Custom(message) -> "Error: " <> message
+    IncorrectMethod(got, expected) ->
+      "Incorrect method: got "
+      <> http.method_to_string(got)
+      <> ", expected "
+      <> http.method_to_string(expected)
+  }
+}
 
 pub opaque type EndPoint(input, output) {
   EndPoint(
@@ -73,7 +91,10 @@ pub fn with_parameter(
     decode_input: fn(input) {
       let #(params, _body) = input
       let param = dict.get(params, parameter.name)
-      use param <- result.try(parameter.decode(option.from_result(param)))
+      use param <- result.try(
+        parameter.decode(option.from_result(param))
+        |> result.replace_error(MissingParameter(parameter.name)),
+      )
       Ok(param)
     },
   )
@@ -104,10 +125,16 @@ pub fn with_parameters2(
     decode_input: fn(input) {
       let #(params, _body) = input
       let param1 = dict.get(params, parameter1.name)
-      use param1 <- result.try(parameter1.decode(option.from_result(param1)))
+      use param1 <- result.try(
+        parameter1.decode(option.from_result(param1))
+        |> result.replace_error(MissingParameter(parameter1.name)),
+      )
 
       let param2 = dict.get(params, parameter2.name)
-      use param2 <- result.try(parameter2.decode(option.from_result(param2)))
+      use param2 <- result.try(
+        parameter2.decode(option.from_result(param2))
+        |> result.replace_error(MissingParameter(parameter2.name)),
+      )
 
       Ok(#(param1, param2))
     },
@@ -141,13 +168,22 @@ pub fn with_parameters3(
     decode_input: fn(input) {
       let #(params, _body) = input
       let param1 = dict.get(params, parameter1.name)
-      use param1 <- result.try(parameter1.decode(option.from_result(param1)))
+      use param1 <- result.try(
+        parameter1.decode(option.from_result(param1))
+        |> result.replace_error(MissingParameter(parameter1.name)),
+      )
 
       let param2 = dict.get(params, parameter2.name)
-      use param2 <- result.try(parameter2.decode(option.from_result(param2)))
+      use param2 <- result.try(
+        parameter2.decode(option.from_result(param2))
+        |> result.replace_error(MissingParameter(parameter2.name)),
+      )
 
       let param3 = dict.get(params, parameter3.name)
-      use param3 <- result.try(parameter3.decode(option.from_result(param3)))
+      use param3 <- result.try(
+        parameter3.decode(option.from_result(param3))
+        |> result.replace_error(MissingParameter(parameter3.name)),
+      )
 
       Ok(#(param1, param2, param3))
     },
@@ -183,16 +219,28 @@ pub fn with_parameters4(
     decode_input: fn(input) {
       let #(params, _body) = input
       let param1 = dict.get(params, parameter1.name)
-      use param1 <- result.try(parameter1.decode(option.from_result(param1)))
+      use param1 <- result.try(
+        parameter1.decode(option.from_result(param1))
+        |> result.replace_error(MissingParameter(parameter1.name)),
+      )
 
       let param2 = dict.get(params, parameter2.name)
-      use param2 <- result.try(parameter2.decode(option.from_result(param2)))
+      use param2 <- result.try(
+        parameter2.decode(option.from_result(param2))
+        |> result.replace_error(MissingParameter(parameter2.name)),
+      )
 
       let param3 = dict.get(params, parameter3.name)
-      use param3 <- result.try(parameter3.decode(option.from_result(param3)))
+      use param3 <- result.try(
+        parameter3.decode(option.from_result(param3))
+        |> result.replace_error(MissingParameter(parameter3.name)),
+      )
 
       let param4 = dict.get(params, parameter4.name)
-      use param4 <- result.try(parameter4.decode(option.from_result(param4)))
+      use param4 <- result.try(
+        parameter4.decode(option.from_result(param4))
+        |> result.replace_error(MissingParameter(parameter3.name)),
+      )
 
       Ok(#(param1, param2, param3, param4))
     },
@@ -230,19 +278,34 @@ pub fn with_parameters5(
     decode_input: fn(input) {
       let #(params, _body) = input
       let param1 = dict.get(params, parameter1.name)
-      use param1 <- result.try(parameter1.decode(option.from_result(param1)))
+      use param1 <- result.try(
+        parameter1.decode(option.from_result(param1))
+        |> result.replace_error(MissingParameter(parameter1.name)),
+      )
 
       let param2 = dict.get(params, parameter2.name)
-      use param2 <- result.try(parameter2.decode(option.from_result(param2)))
+      use param2 <- result.try(
+        parameter2.decode(option.from_result(param2))
+        |> result.replace_error(MissingParameter(parameter2.name)),
+      )
 
       let param3 = dict.get(params, parameter3.name)
-      use param3 <- result.try(parameter3.decode(option.from_result(param3)))
+      use param3 <- result.try(
+        parameter3.decode(option.from_result(param3))
+        |> result.replace_error(MissingParameter(parameter3.name)),
+      )
 
       let param4 = dict.get(params, parameter4.name)
-      use param4 <- result.try(parameter4.decode(option.from_result(param4)))
+      use param4 <- result.try(
+        parameter4.decode(option.from_result(param4))
+        |> result.replace_error(MissingParameter(parameter4.name)),
+      )
 
       let param5 = dict.get(params, parameter5.name)
-      use param5 <- result.try(parameter5.decode(option.from_result(param5)))
+      use param5 <- result.try(
+        parameter5.decode(option.from_result(param5))
+        |> result.replace_error(MissingParameter(parameter5.name)),
+      )
 
       Ok(#(param1, param2, param3, param4, param5))
     },
@@ -282,22 +345,40 @@ pub fn with_parameters6(
     decode_input: fn(input) {
       let #(params, _body) = input
       let param1 = dict.get(params, parameter1.name)
-      use param1 <- result.try(parameter1.decode(option.from_result(param1)))
+      use param1 <- result.try(
+        parameter1.decode(option.from_result(param1))
+        |> result.replace_error(MissingParameter(parameter1.name)),
+      )
 
       let param2 = dict.get(params, parameter2.name)
-      use param2 <- result.try(parameter2.decode(option.from_result(param2)))
+      use param2 <- result.try(
+        parameter2.decode(option.from_result(param2))
+        |> result.replace_error(MissingParameter(parameter2.name)),
+      )
 
       let param3 = dict.get(params, parameter3.name)
-      use param3 <- result.try(parameter3.decode(option.from_result(param3)))
+      use param3 <- result.try(
+        parameter3.decode(option.from_result(param3))
+        |> result.replace_error(MissingParameter(parameter3.name)),
+      )
 
       let param4 = dict.get(params, parameter4.name)
-      use param4 <- result.try(parameter4.decode(option.from_result(param4)))
+      use param4 <- result.try(
+        parameter4.decode(option.from_result(param4))
+        |> result.replace_error(MissingParameter(parameter4.name)),
+      )
 
       let param5 = dict.get(params, parameter5.name)
-      use param5 <- result.try(parameter5.decode(option.from_result(param5)))
+      use param5 <- result.try(
+        parameter5.decode(option.from_result(param5))
+        |> result.replace_error(MissingParameter(parameter5.name)),
+      )
 
       let param6 = dict.get(params, parameter6.name)
-      use param6 <- result.try(parameter6.decode(option.from_result(param6)))
+      use param6 <- result.try(
+        parameter6.decode(option.from_result(param6))
+        |> result.replace_error(MissingParameter(parameter6.name)),
+      )
 
       Ok(#(param1, param2, param3, param4, param5, param6))
     },
@@ -316,7 +397,7 @@ pub fn with_json_body(
     },
     decode_input: fn(input) {
       let #(_params, body) = input
-      json.parse(body, decoder) |> result.replace_error(Nil)
+      json.parse(body, decoder) |> result.map_error(JsonDecodeError)
     },
   )
 }
@@ -324,7 +405,7 @@ pub fn with_json_body(
 pub fn with_body(
   current: EndPoint(Nil, output),
   encode_body: fn(input) -> String,
-  decode_body: fn(String) -> Result(input, Nil),
+  decode_body: fn(String) -> Result(input, Error),
 ) -> EndPoint(input, output) {
   EndPoint(
     ..current,
@@ -353,7 +434,7 @@ pub fn and_with_json_body(
       let #(_params, body) = input
 
       use decoded_new <- result.try(
-        json.parse(body, decoder) |> result.replace_error(Nil),
+        json.parse(body, decoder) |> result.map_error(JsonDecodeError),
       )
 
       Ok(#(decoded_original, decoded_new))
@@ -364,7 +445,7 @@ pub fn and_with_json_body(
 pub fn and_with_body(
   current: EndPoint(original_input, output),
   encode_body: fn(input) -> String,
-  decode_body: fn(String) -> Result(input, Nil),
+  decode_body: fn(String) -> Result(input, Error),
 ) -> EndPoint(#(original_input, input), output) {
   EndPoint(
     ..current,
@@ -387,7 +468,7 @@ pub fn and_with_body(
 pub fn returning(
   current: EndPoint(input, Nil),
   encode_output: fn(output) -> String,
-  decode_output: fn(String) -> Result(output, Nil),
+  decode_output: fn(String) -> Result(output, Error),
 ) -> EndPoint(input, output) {
   EndPoint(..current, encode_output: Some(encode_output), decode_output:)
 }
@@ -403,7 +484,7 @@ pub fn returning_json(
       output |> encode_json() |> json.to_string()
     }),
     decode_output: fn(encoded_output) {
-      json.parse(encoded_output, decoder) |> result.replace_error(Nil)
+      json.parse(encoded_output, decoder) |> result.map_error(JsonDecodeError)
     },
   )
 }
@@ -416,9 +497,9 @@ pub fn server_handle_request(
   request: request.Request(body),
 ) -> Result(
   #(fn(String) -> Result(input, Error), Option(fn(output) -> String)),
-  Error,
+  Nil,
 ) {
-  let parsed_attributes =
+  use parsed_attributes <- result.try(
     endpoint.endpoint
     |> uri.path_segments()
     |> list.strict_zip(request.path_segments(request))
@@ -437,16 +518,19 @@ pub fn server_handle_request(
           _, _ -> list.Stop(Error(Nil))
         }
       }),
-    )
+    ),
+  )
 
-  case request.method == endpoint.method, parsed_attributes {
-    True, Ok(path_attributes) ->
-      Ok(#(
-        fn(body) { endpoint.decode_input(#(path_attributes, body)) },
-        endpoint.encode_output,
-      ))
-    _, _ -> Error(Nil)
-  }
+  Ok(#(
+    fn(body) {
+      use <- bool.guard(
+        request.method != endpoint.method,
+        Error(IncorrectMethod(got: request.method, expected: endpoint.method)),
+      )
+      endpoint.decode_input(#(parsed_attributes, body))
+    },
+    endpoint.encode_output,
+  ))
 }
 
 @internal
@@ -463,13 +547,13 @@ pub fn client_create_request(
       let assert Ok(#(params, path_segments)) = acc
 
       case current_parameter {
-        "$" <> attribute -> {
-          case dict.get(params, attribute) {
+        "$" <> parameter -> {
+          case dict.get(params, parameter) {
             Ok(value) ->
               list.Continue(
-                Ok(#(dict.delete(params, attribute), [value, ..path_segments])),
+                Ok(#(dict.delete(params, parameter), [value, ..path_segments])),
               )
-            Error(Nil) -> list.Stop(Error(Nil))
+            Error(Nil) -> list.Stop(Error(MissingParameter(parameter)))
           }
         }
         segment -> list.Continue(Ok(#(params, [segment, ..path_segments])))

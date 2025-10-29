@@ -1,6 +1,7 @@
+import gleam/json
+import gleam/option
 import sappy
 import sappy/endpoint
-import gleam/option
 import wisp
 
 pub fn handle_request(
@@ -27,7 +28,14 @@ pub fn handle_request(
           }
           handle(input, return_response)
         }
-        Error(_) -> wisp.response(400)
+        Error(e) ->
+          wisp.response(400)
+          |> wisp.json_body(
+            json.object([
+              #("reason", json.string(endpoint.error_to_string(e))),
+            ])
+            |> json.to_string(),
+          )
       }
     }
     _ -> otherwise()
