@@ -465,6 +465,21 @@ pub fn and_with_body(
   )
 }
 
+pub fn map_input(
+  current: EndPoint(original_input, output),
+  encode: fn(new_input) -> original_input,
+  decode: fn(original_input) -> Result(new_input, Error),
+) -> EndPoint(new_input, output) {
+  EndPoint(
+    ..current,
+    encode_input: fn(new_input) { current.encode_input(encode(new_input)) },
+    decode_input: fn(input) {
+      use decoded_original <- result.try(current.decode_input(input))
+      decode(decoded_original)
+    },
+  )
+}
+
 pub fn returning(
   current: EndPoint(input, Nil),
   encode_output: fn(output) -> String,
