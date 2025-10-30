@@ -1,9 +1,11 @@
-import sappy/endpoint
+import gleam/dict
 import gleam/httpc
+import gleam/option
 import gleam/string
 import gleeunit
 import mist
 import sappy
+import sappy/endpoint
 import sappy_wisp
 import shared_test_api
 import wisp
@@ -29,6 +31,28 @@ fn handle_get_person(
     age: 30,
     is_student: False,
   ))
+}
+
+pub fn greet_test() {
+  assert send_request(shared_test_api.greet(), #("Alice", option.Some(2)))
+    == dict.from_list([
+      #("en", "Hello Alice!!"),
+      #("es", "Hola Alice!!"),
+    ])
+}
+
+fn handle_greet(
+  input: #(String, option.Option(Int)),
+  respond_with: fn(dict.Dict(String, String)) -> wisp.Response,
+) -> wisp.Response {
+  let #(name, excitement_level) = input
+  let ending = string.repeat("!", option.unwrap(excitement_level, 1))
+  respond_with(
+    dict.from_list([
+      #("en", "Hello " <> name <> ending),
+      #("es", "Hola " <> name <> ending),
+    ]),
+  )
 }
 
 fn send_request(endpoint: endpoint.EndPoint(a, b), input: a) -> b {
@@ -57,6 +81,12 @@ fn handle_request(request: wisp.Request) -> wisp.Response {
     shared_test_api.get_person(),
     request,
     handle_get_person,
+  )
+
+  use <- sappy_wisp.handle_request(
+    shared_test_api.greet(),
+    request,
+    handle_greet,
   )
 
   panic as "unexpected request"

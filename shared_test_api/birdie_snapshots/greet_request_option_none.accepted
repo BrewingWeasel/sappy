@@ -1,0 +1,5 @@
+---
+version: 1.4.1
+title: greet request option.None
+---
+Request(Get, [], "", Http, "localhost:8000", None, "api/greet/Alice", Some(""))

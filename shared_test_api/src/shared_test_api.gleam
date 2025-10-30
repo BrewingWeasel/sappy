@@ -1,8 +1,12 @@
-import sappy/endpoint/parameter
+import gleam/dict
 import gleam/dynamic/decode
+import gleam/function
 import gleam/http
+import gleam/int
 import gleam/json
+import gleam/option
 import sappy/endpoint
+import sappy/endpoint/parameter
 
 fn base_endpoint(path: String) {
   endpoint.new("localhost:8000", path) |> endpoint.with_scheme(http.Http)
@@ -33,4 +37,21 @@ pub fn get_person() -> endpoint.EndPoint(String, Person) {
   |> endpoint.with_method(http.Get)
   |> endpoint.with_parameter(parameter.required("name"))
   |> endpoint.returning_json(person_to_json, person_decoder())
+}
+
+pub fn greet() -> endpoint.EndPoint(
+  #(String, option.Option(Int)),
+  dict.Dict(String, String),
+) {
+  base_endpoint("/api/greet/$name")
+  |> endpoint.with_method(http.Get)
+  |> endpoint.with_parameters2(
+    parameter.required("name"),
+    parameter.optional("excitement_level")
+      |> parameter.map_optional(int.to_string, int.parse),
+  )
+  |> endpoint.returning_json(
+    json.dict(_, function.identity, json.string),
+    decode.dict(decode.string, decode.string),
+  )
 }
