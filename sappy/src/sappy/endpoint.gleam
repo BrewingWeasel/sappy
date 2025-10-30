@@ -535,6 +535,16 @@ pub fn server_handle_request(
       }),
     ),
   )
+  let uri = request.to_uri(request)
+  let query_attributes =
+    uri.query
+    |> option.to_result(Nil)
+    |> result.try(uri.parse_query)
+    |> result.unwrap([])
+    |> dict.from_list()
+
+  let attributes =
+    dict.combine(query_attributes, parsed_attributes, with: fn(v1, _v2) { v1 })
 
   Ok(#(
     fn(body) {
@@ -542,7 +552,7 @@ pub fn server_handle_request(
         request.method != endpoint.method,
         Error(IncorrectMethod(got: request.method, expected: endpoint.method)),
       )
-      endpoint.decode_input(#(parsed_attributes, body))
+      endpoint.decode_input(#(attributes, body))
     },
     endpoint.encode_output,
   ))
