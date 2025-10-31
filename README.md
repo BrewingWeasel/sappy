@@ -1,14 +1,13 @@
-# sappy_wisp
+# sappy
 
-[![Package Version](https://img.shields.io/hexpm/v/sappy_wisp)](https://hex.pm/packages/sappy_wisp)
-[![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/sappy_wisp/)
-
-Handle [sappy](https://hexdocs.pm/sappy/) API endpoints in your [wisp](https://hexdocs.pm/wisp/) backend
+[![Package Version](https://img.shields.io/hexpm/v/sappy)](https://hex.pm/packages/sappy)
+[![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/sappy/)
 
 ```sh
-gleam add sappy_wisp
+gleam add sappy
 ```
 
+Define an API endpoint once:
 ```gleam
 // src/shared/api.gleam
 import sappy/endpoint
@@ -32,6 +31,28 @@ pub fn greet() -> endpoint.EndPoint(
 }
 ```
 
+Then send requests to it from the client:
+```gleam
+const very_excited = option.Some(4)
+
+fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
+  case msg {
+    GetGreet -> {
+      #(
+        model, 
+        sappy_rsvp.send(api.greet(), #("Bob", very_excited), ServerReturnedGreeting),
+      )
+    }
+    ServerReturnedGreeting(Ok(greetings)) {
+        assert dict.get(greetings, "en") == "Hello Bob!!!!"
+        // ...
+    }
+    // ...
+  }
+}
+```
+
+And handle those requests on the server:
 ```gleam
 fn handle_request(request: wisp.Request) -> wisp.Response {
   use <- sappy_wisp.handle_request(
@@ -57,8 +78,9 @@ fn handle_greet(
 }
 ```
 
-Further documentation can be found at <https://hexdocs.pm/sappy_wisp>.
+Further documentation can be found at <https://hexdocs.pm/sappy>.
 
 See also: 
-    - [Sappy](https://hexdocs.pm/sappy/)
-    - [Wisp](https://hexdocs.pm/wisp/)
+- The `example` directory
+- [sappy_rsvp](https://hexdocs.pm/sappy_rsvp/): Create requests to an endpoint with Lustre and Rsvp
+- [sappy_wisp](https://hexdocs.pm/sappy_wisp/): Handle requests at an endpoint with Wisp
